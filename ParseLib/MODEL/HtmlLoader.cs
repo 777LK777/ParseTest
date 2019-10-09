@@ -16,13 +16,12 @@ namespace ParseLib.MODEL
         public HtmlLoader(IParserSettings settings)
         {
             client = new HttpClient();
-            uri = $"{settings.BaseURI}/{settings.Prefix}/";
+            uri = settings.BaseURI;
         }
 
-        public async Task<string> GetSourceFromPage(int id)
+        public async Task<string> GetSource()
         {
-            var currentUri = uri.Replace("{CurrentId}", id.ToString());
-            var response = await client.GetAsync(currentUri);
+            var response = await client.GetAsync(uri);
             string source = string.Empty;
 
             if (response != null && response.StatusCode == HttpStatusCode.OK)

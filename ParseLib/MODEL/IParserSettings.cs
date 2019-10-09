@@ -8,8 +8,6 @@ namespace ParseLib.Model
     {
         string BaseURI { get; set; }
 
-        string Prefix { get; set; }
-
         int StartPoint { get; set; }
 
         int EndPoint { get; set; }

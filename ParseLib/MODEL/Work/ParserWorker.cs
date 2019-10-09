@@ -66,7 +66,7 @@ namespace ParseLib.MODEL.Work
                 }
                     
 
-                var source = await loader.GetSourceFromPage(i);
+                var source = await loader.GetSource();
                 var domParser = new HtmlParser();
 
                 var document = await domParser.ParseDocumentAsync(source);
