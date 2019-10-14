@@ -1,12 +1,9 @@
-﻿using AngleSharp.Html.Dom;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using AngleSharp;
 
 namespace ParseLib.Model
 {
     interface IParser<T> where T : class
     {
-        T Parse(IHtmlDocument document);
+        T Parse(IBrowsingContext context);
     }
 }

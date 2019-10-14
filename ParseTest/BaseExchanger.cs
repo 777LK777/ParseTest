@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ParseTest
 {
-    class MyInfoRow
+    public class BaseExchanger
     {
         public string ExchangerName { get; set; } = string.Empty;
         public string ExchangerHref { get; set; } = string.Empty;
