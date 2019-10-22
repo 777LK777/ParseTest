@@ -5,11 +5,13 @@ using System.Text;
 
 namespace ParseLib.MODEL.Work
 {
-    class SiteSettings : IParserSettings
+    public class SiteSettings : IParserSettings
     {
-        public string BaseURI { get; set; } = "https://habrahabr.ru";
-        public string Prefix { get; set; } = "page";
-        public int StartPoint { get; set; }
-        public int EndPoint { get; set; }
+        public Uri BaseURI { get; set; }     
+        
+        public SiteSettings(string Address)
+        {
+            this.BaseURI = new Uri(Address);
+        }
     }
 }

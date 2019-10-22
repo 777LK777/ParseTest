@@ -3,13 +3,24 @@ using ParseLib.Model;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace ParseLib.MODEL.Work
 {
-    class ParserWorker<T> where T : class
+    public class ParserWorker<T> where T : class
     {
-        IParser<T> parser;
+        #region Fields
         IParserSettings parserSettings;
+        HtmlLoader loader;
+
+        #endregion
+
+
+        
+
+        public event Action<object, T> OnNewData;
+        public event Action<object> OnCompleted;
+
 
         public bool IsActive
         {
@@ -17,16 +28,7 @@ namespace ParseLib.MODEL.Work
             private set;
         }
 
-        public event Action<object, T> OnNewData;
-        public event Action<object> OnCompleted;
-
-        HtmlLoader loader;
-
-        public IParser<T> Parser
-        {
-            get => parser;
-            set => parser = value;
-        }
+        public IParser<T> Parser { get; set; }
 
         public IParserSettings Settings
         {
@@ -34,20 +36,31 @@ namespace ParseLib.MODEL.Work
             set
             {
                 parserSettings = value;
-                loader = new HtmlLoader(value);
+                loader = new HtmlLoader(value.BaseURI);
             }
-            
+
         }
 
-        public ParserWorker(IParser<T> parser)
+        public ParserWorker() { }
+
+        public ParserWorker(IParser<T> parser, IParserSettings settings)
         {
-            this.parser = parser;
-        }
+            this.Parser = parser;
+            this.Settings = settings;
+        }               
 
         public void Start()
         {
-            IsActive = true;
-            Worker();
+            if (this.Parser != null)
+            {
+                IsActive = true;
+                Task.Run(() => Worker());
+            }
+            else
+            {
+                throw new InvalidOperationException("Адрес сайта не определен!!!");
+            }
+            
         }
 
         public void Abort()
@@ -55,26 +68,17 @@ namespace ParseLib.MODEL.Work
             IsActive = false;
         }
 
-        private async void Worker()
+        private void Worker()
         {
-            for(int i = parserSettings.StartPoint; i<= parserSettings.EndPoint; i++)
+            if (!IsActive)
             {
-                if (!IsActive)
-                {
-                    OnCompleted?.Invoke(this);
-                    return;
-                }
-                    
-
-                var source = await loader.GetSource();
-                var domParser = new HtmlParser();
-
-                var document = await domParser.ParseDocumentAsync(source);
-
-                var result = parser.Parse(document);
-
-                OnNewData?.Invoke(this, result);
+                OnCompleted?.Invoke(this);
+                return;
             }
+
+            var result = Parser.Parse(loader.GetDocument());
+
+            OnNewData?.Invoke(this, result);
 
             OnCompleted?.Invoke(this);
             IsActive = false;

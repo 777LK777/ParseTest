@@ -1,35 +1,42 @@
-﻿using ParseLib.Model;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net;
+﻿using System;
+using AngleSharp.Dom;
+using AngleSharp;
 
 namespace ParseLib.MODEL
 {
     class HtmlLoader
     {
-        readonly HttpClient client;
-        readonly string uri;
+        readonly IBrowsingContext _context;
+        readonly string _address;
+        IConfiguration _config;
 
-        public HtmlLoader(IParserSettings settings)
+        IConfiguration Configuration
         {
-            client = new HttpClient();
-            uri = settings.BaseURI;
+            get => _config;
+            set
+            {
+                if(value == null)
+                {
+                    _config = AngleSharp.Configuration.Default.WithDefaultLoader();
+                }
+                else
+                {
+                    _config = value;
+                }
+            }
         }
 
-        public async Task<string> GetSource()
+        public HtmlLoader(Uri address, IConfiguration configuration = null)
+        {            
+            _address = address.ToString();
+            this.Configuration = configuration;
+
+            _context = BrowsingContext.New(this.Configuration);
+        }
+
+        public IDocument GetDocument()
         {
-            var response = await client.GetAsync(uri);
-            string source = string.Empty;
-
-            if (response != null && response.StatusCode == HttpStatusCode.OK)
-            {
-                source = await response.Content.ReadAsStringAsync();
-            }
-
-            return source;
+            return _context.OpenAsync(_address).Result;            
         }
     }
 }

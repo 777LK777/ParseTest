@@ -8,26 +8,15 @@ using ParseLib.MODEL.Work;
 using AngleSharp.Dom;
 using System.Globalization;
 using System.Threading;
+using ParseLib.MODEL;
 
 namespace ParseLib
 {
-    public class SiteParser : IParser<List<BaseExchanger>>
+    public class SiteParser : IParser<BaseExchanger[]>
     {
-        readonly string address;
-        public SiteParser(string address)
+        public virtual BaseExchanger[] Parse(IDocument document)
         {
-            this.address = address;
-        }
-
-        public List<BaseExchanger> Parse(IBrowsingContext context)
-        {
-            var config = Configuration.Default.WithDefaultLoader();
-            context = BrowsingContext.New(config);
-
-            var document = context.OpenAsync(address).Result;
-
-            var table = document.QuerySelector("#content_table").QuerySelector(TagNames.Tbody) as IHtmlTableElement;
-
+            var table = document.QuerySelector("#content_table") as IHtmlTableElement;
             var links = document.Links
                 .OfType<IHtmlAnchorElement>()
                 .Select(e => e.Href)
@@ -37,17 +26,20 @@ namespace ParseLib
 
             Console.WriteLine(table is null ? "NULL" : "Table is parsing");
 
-            //table.QuerySelector(TagNames.Thead).Remove();
-            Console.ReadKey();
+            table.QuerySelector(TagNames.Thead).Remove();
+            Thread.Sleep(5000);
 
             if (table.Rows.Count() == links.Count())
             {
                 List<BaseExchanger> exchangers = new List<BaseExchanger>();
                 Console.WriteLine("Count refs equal to count table rows");
                 for (int i = 0; i < table.Rows.Count(); i++)
-                {                    
-                    BaseExchanger exchanger = new BaseExchanger();
-                    exchanger.TimeOfReceipt = time;
+                {
+                    BaseExchanger exchanger = new BaseExchanger
+                    {
+                        TimeStamp = time
+                    };
+
                     var R = table.Rows[i];
 
                     exchanger.ExchangerUri = links.ElementAt(i);
@@ -68,8 +60,7 @@ namespace ParseLib
                     exchanger.From = Convert.ToDouble(R.QuerySelector(".fm1").TextContent.Replace(" ", "").Replace("от", ""));
 
                     if (R.QuerySelectorAll(".fm2").Count() == 1)
-                    {
-                        
+                    {                        
                         exchanger.To = Convert.ToDouble(R.QuerySelector(".fm2").TextContent.Replace(" ", "").Replace("до", ""));
                     }
 
@@ -79,7 +70,7 @@ namespace ParseLib
                     exchangers.Add(exchanger);
                 }
 
-                return exchangers;
+                return exchangers.ToArray();
             }
             else
             {

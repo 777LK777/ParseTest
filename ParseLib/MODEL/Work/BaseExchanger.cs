@@ -9,7 +9,7 @@ namespace ParseLib.MODEL.Work
         /// <summary>
         /// Время снятия курса
         /// </summary>
-        public string TimeOfReceipt { get; set; } = string.Empty;
+        public string TimeStamp { get; set; } = string.Empty;
 
         /// <summary>
         /// Имя обменника
