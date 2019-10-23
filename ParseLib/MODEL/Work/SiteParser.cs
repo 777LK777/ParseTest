@@ -27,7 +27,6 @@ namespace ParseLib
             Console.WriteLine(table is null ? "NULL" : "Table is parsing");
 
             table.QuerySelector(TagNames.Thead).Remove();
-            Thread.Sleep(5000);
 
             if (table.Rows.Count() == links.Count())
             {
