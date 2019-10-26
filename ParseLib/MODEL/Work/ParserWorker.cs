@@ -1,4 +1,5 @@
-﻿using AngleSharp.Html.Parser;
+﻿using AngleSharp.Dom;
+using AngleSharp.Html.Parser;
 using ParseLib.Model;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,8 @@ namespace ParseLib.MODEL.Work
     public class ParserWorker<T> where T : class
     {
         #region Fields
-        IParserSettings parserSettings;
-        HtmlLoader loader;
-
+        List<IParserSettings> parserSettings;
+        List<HtmlLoader> loaders;
         #endregion
 
 
@@ -30,23 +30,31 @@ namespace ParseLib.MODEL.Work
 
         public IParser<T> Parser { get; set; }
 
-        public IParserSettings Settings
+        private void SetParserSettings(List<IParserSettings> settings)
         {
-            get => parserSettings;
-            set
+            if(settings.Count != 0)
             {
-                parserSettings = value;
-                loader = new HtmlLoader(value.BaseURI);
+                for (int i = 0; i < settings.Count; i++)
+                {
+                    loaders.Add(new HtmlLoader(settings[i].BaseURI));
+                }
             }
-
+            else
+            {
+                throw new InvalidOperationException("Список адресов для парсинга пустой");
+            }
         }
 
-        public ParserWorker() { }
-
-        public ParserWorker(IParser<T> parser, IParserSettings settings)
+        public List<IParserSettings> Settings
         {
+            get => parserSettings;
+        }
+
+        public ParserWorker(IParser<T> parser, List<IParserSettings> settings)
+        {
+            loaders = new List<HtmlLoader>();
+            SetParserSettings(settings);
             this.Parser = parser;
-            this.Settings = settings;
         }               
 
         public void Start()
@@ -54,7 +62,7 @@ namespace ParseLib.MODEL.Work
             if (this.Parser != null)
             {
                 IsActive = true;
-                Task.Run(() => Worker());
+                Worker();
             }
             else
             {
@@ -76,7 +84,16 @@ namespace ParseLib.MODEL.Work
                 return;
             }
 
-            var result = Parser.Parse(loader.GetDocument());
+            List<Task> tasks = new List<Task>();
+            List<T> results = new List<T>();
+            List<IDocument> documents = new List<IDocument>();
+
+            foreach (var loader in loaders)
+            {
+                documents.Add(loader.GetDocument());
+            }
+
+            var result = Parser.Parse(documents);
 
             OnNewData?.Invoke(this, result);
 

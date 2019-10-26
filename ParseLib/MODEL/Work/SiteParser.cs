@@ -9,11 +9,33 @@ using AngleSharp.Dom;
 using System.Globalization;
 using System.Threading;
 using ParseLib.MODEL;
+using System.Threading.Tasks;
 
 namespace ParseLib
 {
     public class SiteParser : IParser<BaseExchanger[]>
     {
+        public BaseExchanger[] Parse(List<IDocument> documents)
+        {
+            List<BaseExchanger> exchangers = new List<BaseExchanger>();
+            List<Task> tasks = new List<Task>();
+
+            foreach(IDocument document in documents)
+            {
+                tasks.Add(new Task( () =>
+                {
+                    exchangers.AddRange(this.Parse(document));
+                }));
+            }
+
+            Console.WriteLine("Здесь");
+
+            tasks.ForEach(t => t.RunSynchronously());
+            Task.WaitAll(tasks.ToArray());
+
+            return exchangers.ToArray();
+        }
+
         public virtual BaseExchanger[] Parse(IDocument document)
         {
             var table = document.QuerySelector("#content_table") as IHtmlTableElement;
@@ -25,6 +47,8 @@ namespace ParseLib
             string time = DateTime.Now.ToLongTimeString();
 
             Console.WriteLine(table is null ? "NULL" : "Table is parsing");
+            if (table is null)
+                throw new InvalidOperationException("Сработала капчАААА!");
 
             table.QuerySelector(TagNames.Thead).Remove();
 

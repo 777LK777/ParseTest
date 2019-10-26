@@ -18,7 +18,7 @@ namespace ParseTest
 {
     class Program
     {
-        static List<SiteSettings> Addresses = new List<SiteSettings>
+        static List<IParserSettings> Addresses = new List<IParserSettings>
         {
             new SiteSettings("https://www.bestchange.ru/qiwi-to-bitcoin-cash.html"),
             new SiteSettings("https://www.bestchange.ru/qiwi-to-bitcoin.html"),
@@ -32,19 +32,30 @@ namespace ParseTest
         static void Main(string[] args)
         {
             Console.WriteLine("\n START");
-            
-            ParserWorker<BaseExchanger[]> worker = new ParserWorker<BaseExchanger[]>();
+
+            ;
+            ParserWorker<BaseExchanger[]> worker = new ParserWorker<BaseExchanger[]>(new SiteParser(), Addresses);
 
             worker.OnNewData += Parser_OnNewData;
             worker.OnCompleted += Parser_OnCompleted;
 
-            Addresses.ForEach( addr =>
-            {
-                worker.Settings = addr;
-                worker.Parser = new SiteParser();
-                worker.Start();
-            });
+            
+            
+            worker.Start();
 
+            
+
+            
+
+
+
+
+            foreach (var i in exchangers)
+            {
+                Console.WriteLine(i.AltcoinName + "\t" + i.ExchangerName + "\t" + i.ExchangerUri);
+            }
+
+            Console.WriteLine("\n END");
             Console.ReadKey();
         }
 
@@ -60,28 +71,3 @@ namespace ParseTest
         }
     }
 }
-
-
-
-//Console.WriteLine(Addresses[0]);
-
-//List<BaseSiteParser> parsers = new List<BaseSiteParser>();
-
-//foreach(var address in Addresses)
-//{
-//    parsers.Add(new BaseSiteParser(address));
-//}
-
-//List<BaseExchanger> exchangers = new List<BaseExchanger>();
-
-//foreach(var parser in parsers)
-//{
-//    exchangers.AddRange(parser.Parse());
-//}
-
-//foreach (var result in exchangers)
-//{
-//    Console.WriteLine(result.AltcoinName + "\t" + result.SellPrice + "\t" + result.ExchangerName + "\tFrom: " + result.From + "\tTo: " + result.To + "\tReserve: " + result.Reserve);
-//    Console.WriteLine(result.TimeOfReceipt + "\t" + result.ExchangerUri);
-//    Console.WriteLine("--- --- --- ---");
-//}
